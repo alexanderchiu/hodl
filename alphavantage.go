@@ -1,7 +1,8 @@
-package common
+package main
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"time"
 
@@ -86,5 +87,8 @@ func unmarshal(timeSeries map[string]interface{}) ([]DataPoint, error) {
 		}
 		data = append(data, DataPoint{date, indicators})
 	}
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].Timestamp.After(data[j].Timestamp)
+	})
 	return data, nil
 }
