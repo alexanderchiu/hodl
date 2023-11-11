@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"encoding/json"
@@ -56,6 +56,7 @@ func parseFloat(fields map[string]interface{}, key string) (float64, error) {
 func parseInt(fields map[string]interface{}, key string) (int64, error) {
 	return strconv.ParseInt(fields[key].(string), 0, 64)
 }
+
 func unmarshal(timeSeries map[string]interface{}) ([]DataPoint, error) {
 	var data []DataPoint
 	for key, value := range timeSeries {
