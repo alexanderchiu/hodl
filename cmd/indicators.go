@@ -33,7 +33,6 @@ type Series struct {
 	Data []DataPoint
 }
 
-// Oracle is a source of market related information
-type Oracle interface {
+type TickerProvider interface {
 	DailySeries(symbol string) (Series, error)
 }

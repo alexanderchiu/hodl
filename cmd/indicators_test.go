@@ -42,7 +42,7 @@ func TestDailySeries(t *testing.T) {
 			}
 		}`
 	httpmock.RegisterResponder("GET", `=~^https://www\.alphavantage\.co\/query.*$`, httpmock.NewStringResponder(200, data))
-	oracle := NewOracle(client, "test")
+	oracle := NewTickerProvider(client, "test")
 	series, _ := oracle.DailySeries("test")
 	assertEquals(t, 2, len(series.Data))
 	assertEquals(t, time.Date(2020, 05, 29, 0, 0, 0, 0, time.UTC), series.Data[0].Timestamp)

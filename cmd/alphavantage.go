@@ -9,11 +9,11 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-var av = "https://www.alphavantage.co/query?"
+var avUrl = "https://www.alphavantage.co/query?"
 
-// NewOracle creates an instace of a MarketOracle that uses the
+// NewTickerProvider creates an instace of a TickerProvider
 // AlphaVantage API: https://www.alphavantage.co/documentation/
-func NewOracle(client *resty.Client, apiKey string) Oracle {
+func NewTickerProvider(client *resty.Client, apiKey string) TickerProvider {
 	return alphaVantageClient{client, apiKey}
 }
 
@@ -23,7 +23,7 @@ type alphaVantageClient struct {
 }
 
 func avFunction(f string) string {
-	return av + "function=" + f
+	return avUrl + "function=" + f
 }
 
 func param(base string, paramType string, paramValue string) string {

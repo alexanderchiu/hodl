@@ -26,8 +26,8 @@ var (
 		Short: "Hodl is a cli for fetching JSE share price data",
 		Run: func(cmd *cobra.Command, args []string) {
 			apiKey := viper.GetString("alpha_vantage_api_key")
-			oracle := NewOracle(resty.New(), apiKey)
-			series, err := oracle.DailySeries(args[0])
+			ticker := NewTickerProvider(resty.New(), apiKey)
+			series, err := ticker.DailySeries(args[0])
 			if err != nil {
 				panic(err)
 			}
