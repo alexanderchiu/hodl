@@ -47,7 +47,7 @@ var (
 			labels := make(map[int]string)
 			for i, d := range data {
 				i = len(data) - i - 1
-				x[i] = d.Indicators.Close
+				x[i] = d.Candle.Close
 				labels[i] = d.Timestamp.Format("Jan02")
 			}
 			lc, err := linechart.New(
@@ -67,7 +67,7 @@ var (
 			if err != nil {
 				panic(err)
 			}
-			err = text.Write(latest.Indicators.String())
+			err = text.Write(latest.Candle.String())
 			if err != nil {
 				panic(err)
 			}

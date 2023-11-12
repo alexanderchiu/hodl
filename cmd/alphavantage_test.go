@@ -89,11 +89,11 @@ func TestDailySeries(t *testing.T) {
 	series, _ := ticker.DailySeries("test")
 	assert.Equal(t, 2, len(series.Data))
 	assert.Equal(t, time.Date(2020, 05, 29, 0, 0, 0, 0, time.UTC), series.Data[0].Timestamp)
-	assert.EqualValues(t, 101, series.Data[1].Indicators.Open)
-	assert.EqualValues(t, 108, series.Data[1].Indicators.High)
-	assert.EqualValues(t, 104, series.Data[1].Indicators.Low)
-	assert.EqualValues(t, 107, series.Data[1].Indicators.Close)
-	assert.EqualValues(t, 2270535, series.Data[1].Indicators.Volume)
+	assert.EqualValues(t, 101, series.Data[1].Candle.Open)
+	assert.EqualValues(t, 108, series.Data[1].Candle.High)
+	assert.EqualValues(t, 104, series.Data[1].Candle.Low)
+	assert.EqualValues(t, 107, series.Data[1].Candle.Close)
+	assert.EqualValues(t, 2270535, series.Data[1].Candle.Volume)
 }
 
 func addJsonResponse(method string, url string, json string, status int) {

@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
-	"sort"
-	"strconv"
+	"log"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -27,11 +24,11 @@ type alphaVantageClient struct {
 func (ticketProvider alphaVantageClient) Search(keywords string) ([]Ticker, error) {
 	search := avFunction("SYMBOL_SEARCH")
 	search = param(search, "keywords", keywords)
-	search = param(search, "apikey", ticketProvider.apiKey)
+
 	var searchResponse AlphaVantageSymbolSearchResponse
-	_, err := ticketProvider.client.R().SetResult(&searchResponse).Get(search)
+	_, err := ticketProvider.get(search, &searchResponse)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Could not parse search response", err)
 		return []Ticker{}, err
 	}
 
@@ -50,72 +47,57 @@ func param(base string, paramType string, paramValue string) string {
 	return base + "&" + paramType + "=" + paramValue
 }
 
-func (ticketProvider alphaVantageClient) get(url string) (*resty.Response, error) {
+func (ticketProvider alphaVantageClient) get(url string, result interface{}) (*resty.Response, error) {
 	url = param(url, "apikey", ticketProvider.apiKey)
-	return ticketProvider.client.R().Get(url)
+	return ticketProvider.client.R().SetResult(result).Get(url)
 }
 
 // DailySeries returns daily indicators for the provided ticker symbol
 func (ticketProvider alphaVantageClient) DailySeries(symbol string) (Series, error) {
 	daily := avFunction("TIME_SERIES_DAILY")
 	daily = param(daily, "symbol", symbol)
-	resp, err := ticketProvider.get(daily)
+
+	var timeSeriesDaily AlphaVantageTimeSeriesDailyResponse
+	_, err := ticketProvider.get(daily, &timeSeriesDaily)
 	if err != nil {
+		log.Println("Could not parse daily time series response", err)
 		return Series{}, err
 	}
-	var result map[string]interface{}
-	json.Unmarshal(resp.Body(), &result)
-	timeSeries := result["Time Series (Daily)"].(map[string]interface{})
-	data, err := unmarshal(timeSeries)
-	if err != nil {
-		return Series{}, err
-	}
-	return Series{data}, nil
-}
 
-func parseFloat(fields map[string]interface{}, key string) (float64, error) {
-	return strconv.ParseFloat(fields[key].(string), 64)
-}
-
-func parseInt(fields map[string]interface{}, key string) (int64, error) {
-	return strconv.ParseInt(fields[key].(string), 0, 64)
-}
-
-func unmarshal(timeSeries map[string]interface{}) ([]DataPoint, error) {
-	var data []DataPoint
-	for key, value := range timeSeries {
-		d := value.(map[string]interface{})
-		open, err := parseFloat(d, "1. open")
-		if err != nil {
-			return nil, err
-		}
-		high, err := parseFloat(d, "2. high")
-		if err != nil {
-			return nil, err
-		}
-		low, err := parseFloat(d, "3. low")
-		if err != nil {
-			return nil, err
-		}
-		close, err := parseFloat(d, "4. close")
-		if err != nil {
-			return nil, err
-		}
-		volume, err := parseInt(d, "5. volume")
-		if err != nil {
-			return nil, err
-		}
-		indicators := Indicators{open, high, low, close, volume}
+	dataPoints := make([]DataPoint, len(timeSeriesDaily.TimeSeries))
+	idx := 0
+	for key, value := range timeSeriesDaily.TimeSeries {
 		date, err := time.Parse("2006-01-02", key)
 		if err != nil {
-			return nil, err
+			log.Println("Could not parse time series key response", err)
+			return Series{}, err
 		}
-		data = append(data, DataPoint{date, indicators})
+		dataPoints[idx] = DataPoint{date, value.asCandle()}
+		idx++
 	}
-	sort.Slice(data, func(i, j int) bool {
-		return data[i].Timestamp.After(data[j].Timestamp)
-	})
-	return data, nil
+	return Series{dataPoints}, nil
+}
+
+type AlphaVantageTimeSeriesDailyResponse struct {
+	TimeSeries map[string]AlphaVantageCandle `json:"Time Series (Daily)"`
+}
+
+type AlphaVantageCandle struct {
+	Open   float64 `json:"1. open,string"`
+	High   float64 `json:"2. high,string"`
+	Low    float64 `json:"3. low,string"`
+	Close  float64 `json:"4. close,string"`
+	Volume int64   `json:"5. volume,string"`
+}
+
+func (avc AlphaVantageCandle) asCandle() Candle {
+	return Candle{
+		Open:   avc.Open,
+		High:   avc.High,
+		Low:    avc.Low,
+		Close:  avc.Close,
+		Volume: avc.Volume,
+	}
 }
 
 type AlphaVantageSymbolSearchResponse struct {

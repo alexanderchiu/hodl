@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// Indicators describe historical market data
-type Indicators struct {
+// Candle describe historical market data
+type Candle struct {
 	Open   float64
 	High   float64
 	Low    float64
@@ -14,18 +14,18 @@ type Indicators struct {
 	Volume int64
 }
 
-func (i Indicators) String() string {
+func (i Candle) String() string {
 	return fmt.Sprintf("Open: %f\nHigh: %f\nLow: %f\nClose: %f\nVolume: %d\n", i.Open, i.High, i.Low, i.Close, i.Volume)
 }
 
 // DataPoint capture indicators for a particular period of time
 type DataPoint struct {
-	Timestamp  time.Time
-	Indicators Indicators
+	Timestamp time.Time
+	Candle    Candle
 }
 
 func (dp DataPoint) String() string {
-	return fmt.Sprintf("%s\n%v", dp.Timestamp.Format("2006-01-02"), dp.Indicators)
+	return fmt.Sprintf("%s\n%v", dp.Timestamp.Format("2006-01-02"), dp.Candle)
 }
 
 // Series is a collection of non-overlapping data points
