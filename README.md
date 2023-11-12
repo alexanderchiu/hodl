@@ -12,3 +12,11 @@
 You can try out the utility with a demo api key:
 
     hodl --apiKey 'demo' IBM
+
+## Configuration
+
+You can also use a `.env` file for specifying configuration e.g:
+
+```
+ALPHA_VANTAGE_API_KEY=demo
+```
