@@ -10,22 +10,22 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(dailyCmd)
 }
 
-var searchCmd = &cobra.Command{
-	Use:   "search",
+var dailyCmd = &cobra.Command{
+	Use:   "daily",
+	Short: "Fetch daily historical OHLCV data for the provided ticker",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	Short: "Search for tickers based on the provided keywords",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(args[0])
 		apiKey := viper.GetString("alpha_vantage_api_key")
 		ticker := NewTickerProvider(resty.New(), apiKey)
-		symbols, err := ticker.Search(args[0])
+		series, err := ticker.DailySeries(args[0])
 		if err != nil {
 			panic(err)
 		}
-
-		b, err := json.MarshalIndent(symbols, "", "	")
+		b, err := json.MarshalIndent(series, "", "	")
 		if err != nil {
 			fmt.Println(err)
 		}

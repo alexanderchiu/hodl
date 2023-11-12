@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/viper"
 )
 
 var avUrl = "https://www.alphavantage.co/query?"
@@ -49,6 +50,9 @@ func param(base string, paramType string, paramValue string) string {
 
 func (ticketProvider alphaVantageClient) get(url string, result interface{}) (*resty.Response, error) {
 	url = param(url, "apikey", ticketProvider.apiKey)
+	if viper.GetBool("verbose") {
+		log.Printf("Performing GET request to %s", url)
+	}
 	return ticketProvider.client.R().SetResult(result).Get(url)
 }
 
