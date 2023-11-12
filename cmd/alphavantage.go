@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -22,6 +23,25 @@ type alphaVantageClient struct {
 	apiKey string
 }
 
+// Search implements TickerProvider.
+func (ticketProvider alphaVantageClient) Search(keywords string) ([]Ticker, error) {
+	search := avFunction("SYMBOL_SEARCH")
+	search = param(search, "keywords", keywords)
+	search = param(search, "apikey", ticketProvider.apiKey)
+	var searchResponse AlphaVantageSymbolSearchResponse
+	_, err := ticketProvider.client.R().SetResult(&searchResponse).Get(search)
+	if err != nil {
+		fmt.Println(err)
+		return []Ticker{}, err
+	}
+
+	tickers := make([]Ticker, len(searchResponse.BestMatches))
+	for idx, x := range searchResponse.BestMatches {
+		tickers[idx] = x.asTicker()
+	}
+	return tickers, nil
+}
+
 func avFunction(f string) string {
 	return avUrl + "function=" + f
 }
@@ -30,12 +50,16 @@ func param(base string, paramType string, paramValue string) string {
 	return base + "&" + paramType + "=" + paramValue
 }
 
+func (ticketProvider alphaVantageClient) get(url string) (*resty.Response, error) {
+	url = param(url, "apikey", ticketProvider.apiKey)
+	return ticketProvider.client.R().Get(url)
+}
+
 // DailySeries returns daily indicators for the provided ticker symbol
-func (mo alphaVantageClient) DailySeries(symbol string) (Series, error) {
+func (ticketProvider alphaVantageClient) DailySeries(symbol string) (Series, error) {
 	daily := avFunction("TIME_SERIES_DAILY")
 	daily = param(daily, "symbol", symbol)
-	daily = param(daily, "apikey", mo.apiKey)
-	resp, err := mo.client.R().Get(daily)
+	resp, err := ticketProvider.get(daily)
 	if err != nil {
 		return Series{}, err
 	}
@@ -92,4 +116,30 @@ func unmarshal(timeSeries map[string]interface{}) ([]DataPoint, error) {
 		return data[i].Timestamp.After(data[j].Timestamp)
 	})
 	return data, nil
+}
+
+type AlphaVantageSymbolSearchResponse struct {
+	BestMatches []AlphaVantageSymbol
+}
+
+type AlphaVantageSymbol struct {
+	Symbol      string `json:"1. symbol"`
+	Name        string `json:"2. name"`
+	Type        string `json:"3. type"`
+	Region      string `json:"4. region"`
+	MarketOpen  string `json:"5. marketOpen"`
+	MarketClose string `json:"6. marketClose"`
+	Timezone    string `json:"7. timezone"`
+	Currency    string `json:"8. currency"`
+	MatchScore  string `json:"9. matchScore"`
+}
+
+func (avs AlphaVantageSymbol) asTicker() Ticker {
+	return Ticker{
+		Symbol:   avs.Symbol,
+		Name:     avs.Name,
+		Type:     avs.Type,
+		Region:   avs.Region,
+		Currency: avs.Currency,
+	}
 }

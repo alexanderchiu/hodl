@@ -35,4 +35,13 @@ type Series struct {
 
 type TickerProvider interface {
 	DailySeries(symbol string) (Series, error)
+	Search(keywords string) ([]Ticker, error)
+}
+
+type Ticker struct {
+	Symbol   string
+	Name     string
+	Type     string
+	Region   string
+	Currency string
 }
