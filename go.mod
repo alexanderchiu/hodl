@@ -1,6 +1,6 @@
 module github.com/alexanderchiu/hodl
 
-go 1.20
+go 1.19
 
 require (
 	github.com/go-resty/resty/v2 v2.10.0
