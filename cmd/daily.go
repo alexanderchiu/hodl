@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -18,7 +18,6 @@ var dailyCmd = &cobra.Command{
 	Short: "Fetch daily historical OHLCV data for the provided ticker",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args[0])
 		apiKey := viper.GetString("alpha_vantage_api_key")
 		ticker := NewTickerProvider(resty.New(), apiKey)
 		series, err := ticker.DailySeries(args[0])
@@ -27,8 +26,8 @@ var dailyCmd = &cobra.Command{
 		}
 		b, err := json.MarshalIndent(series, "", "	")
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
-		fmt.Println(string(b))
+		log.Println(string(b))
 	},
 }

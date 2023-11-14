@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -27,8 +27,8 @@ var searchCmd = &cobra.Command{
 
 		b, err := json.MarshalIndent(symbols, "", "	")
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
-		fmt.Println(string(b))
+		log.Println(string(b))
 	},
 }
